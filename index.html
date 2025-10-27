@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rock • Paper • Scissors</title>
+  <style>
+    :root{
+      --bg:#0f1220;
+      --card:#171a2b;
+      --ink:#e9ecff;
+      --muted:#aab0d9;
+      --win:#29cf7f;
+      --lose:#ff5468;
+      --tie:#9aa3ff;
+      --accent:#7b8cff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100dvh;
+      display:grid; place-items:center;
+      background: radial-gradient(80% 80% at 50% 0%, #1a1d31 0%, var(--bg) 60%);
+      color:var(--ink); font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+    }
+    .wrap{
+      width:min(900px, 92vw);
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:22px; padding:28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+    }
+    h1{margin:0 0 6px; font-size:clamp(24px, 2.6vw, 34px); letter-spacing:.3px}
+    .sub{color:var(--muted); margin:0 0 20px; font-size:14px}
+    .row{display:flex; gap:16px; flex-wrap:wrap}
+    .card{
+      background:#12162a; border:1px solid rgba(255,255,255,.06);
+      border-radius:16px; padding:16px
+    }
+    /* Start screen */
+    #startCard input{
+      background:#0f1430; color:var(--ink);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:12px; padding:12px 14px; outline:none;
+      width:100%;
+    }
+    label{font-size:13px; color:var(--muted); display:block; margin:10px 0 6px}
+    .error{color:var(--lose); font-size:13px; min-height:1.2em}
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      gap:10px; padding:12px 16px;
+      background:linear-gradient(180deg, #7c8cff, #5a6bff);
+      color:white; border:none; border-radius:12px;
+      font-weight:700; cursor:pointer;
+      transition:.2s transform ease, .2s filter ease, .2s opacity ease;
+      box-shadow:0 10px 30px rgba(122,140,255,.35);
+    }
+    .btn:disabled{opacity:.55; cursor:not-allowed; filter:grayscale(.3)}
+    .btn.ghost{
+      background:#0f1430; color:var(--ink); border:1px solid rgba(255,255,255,.14);
+      box-shadow:none; font-weight:600;
+    }
+
+    /* Game grid */
+    .grid{
+      display:grid; gap:16px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width:820px){
+      .grid{grid-template-columns: 1.2fr .8fr;}
+    }
+
+    .score{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 16px; border-radius:12px; background:#0f1430; border:1px solid rgba(255,255,255,.08);
+      font-weight:700; letter-spacing:.2px
+    }
+    .score .small{font-weight:500; color:var(--muted); font-size:13px}
+
+    .choices{
+      display:flex; gap:14px; flex-wrap:wrap; margin-top:12px
+    }
+    .choice{
+      font-size:28px; line-height:1; padding:14px 18px;
+      background:#0f1430; border:1px solid rgba(255,255,255,.14);
+      border-radius:14px; cursor:pointer; transition:transform .08s ease, box-shadow .2s ease;
+      box-shadow:0 6px 18px rgba(0,0,0,.25);
+    }
+    .choice:disabled{opacity:.55; cursor:not-allowed}
+    .choice:active{transform:translateY(1px) scale(.99)}
+    .versus{
+      display:flex; gap:14px; align-items:center; justify-content:space-between;
+      margin-top:14px; padding:14px; background:#0f1430; border:1px solid rgba(255,255,255,.1); border-radius:14px
+    }
+    .pick{
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-width:120px
+    }
+    .emoji{font-size:42px}
+    .who{font-size:12px; color:var(--muted)}
+    .result{
+      margin-top:12px; padding:12px 14px; border-radius:12px;
+      background:#101431; border:1px solid rgba(255,255,255,.08);
+      display:flex; align-items:center; justify-content:space-between; gap:10px
+    }
+    .result strong{font-size:15px}
+    .tag{font-size:12px; padding:6px 10px; border-radius:999px; font-weight:700}
+    .tag.win{background:rgba(41,207,127,.15); color:var(--win); border:1px solid rgba(41,207,127,.3)}
+    .tag.lose{background:rgba(255,84,104,.15); color:var(--lose); border:1px solid rgba(255,84,104,.3)}
+    .tag.tie{background:rgba(154,163,255,.15); color:var(--tie); border:1px solid rgba(154,163,255,.35)}
+    .fade{animation:fade .6s ease}
+    @keyframes fade{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none}}
+
+    .final{
+      margin-top:14px; padding:14px; border-radius:12px;
+      background:linear-gradient(180deg, rgba(122,140,255,.22), rgba(122,140,255,.06));
+      border:1px solid rgba(122,140,255,.35);
+      display:none;
+    }
+    .final.show{display:block}
+    .actions{display:flex; gap:10px; flex-wrap:wrap}
+
+    footer{margin-top:14px; color:var(--muted); font-size:12px; text-align:center}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Rock · Paper · Scissors</h1>
+    <p class="sub">Play to the winning score you choose. Good luck!</p>
+
+    <!-- START SCREEN -->
+    <div id="startCard" class="card">
+      <div class="row">
+        <div style="flex:1 1 260px">
+          <label for="playerName">Player name</label>
+          <input id="playerName" type="text" placeholder="e.g., Yvette" autocomplete="off"/>
+        </div>
+        <div style="width:180px; flex:1 1 160px">
+          <label for="winScore">Winning score</label>
+          <input id="winScore" type="number" inputmode="numeric" min="1" step="1" placeholder="e.g., 5"/>
+        </div>
+      </div>
+      <div class="row" style="margin-top:14px; align-items:center; justify-content:space-between">
+        <div class="error" id="startError"></div>
+        <button id="startBtn" class="btn" aria-label="Start Game">Start Game</button>
+      </div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="gameArea" style="display:none">
+      <div class="grid">
+        <!-- Left: play area -->
+        <div>
+          <div class="score" id="scorebar">
+            <div>
+              <div id="scoreLabel"><span id="playerLabel">Player</span> vs Computer</div>
+              <div class="small">First to <span id="targetScore">5</span> wins</div>
+            </div>
+            <div><span id="pScore">0</span> : <span id="cScore">0</span></div>
+          </div>
+
+          <div class="choices">
+            <button class="choice" id="btn-rock" data-choice="Rock" aria-label="Rock">✊</button>
+            <button class="choice" id="btn-paper" data-choice="Paper" aria-label="Paper">✋</button>
+            <button class="choice" id="btn-scissors" data-choice="Scissors" aria-label="Scissors">✌️</button>
+          </div>
+
+          <div class="versus">
+            <div class="pick">
+              <div class="who" id="whoYou">You picked</div>
+              <div class="emoji" id="youEmoji">–</div>
+              <div class="small" id="youText">—</div>
+            </div>
+            <div class="pick">
+              <div class="who">Computer picked</div>
+              <div class="emoji" id="cpuEmoji">–</div>
+              <div class="small" id="cpuText">—</div>
+            </div>
+          </div>
+
+          <div class="result" id="roundBox">
+            <strong id="roundMsg">Make your move.</strong>
+            <span id="roundTag" class="tag tie">READY</span>
+          </div>
+
+          <div class="final" id="finalBox">
+            <div id="finalMsg" style="font-weight:800; margin-bottom:10px"></div>
+            <div class="actions">
+              <button id="playAgain" class="btn">Play Again</button>
+              <button id="newMatch" class="btn ghost" title="Change name or winning score">New Settings</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: tips -->
+        <aside class="card" style="height:100%">
+          <h3 style="margin:0 0 8px; font-size:16px">Rules</h3>
+          <ul style="margin:0; padding-left:18px; line-height:1.6; color:var(--muted); font-size:14px">
+            <li>Rock beats Scissors</li>
+            <li>Paper beats Rock</li>
+            <li>Scissors beats Paper</li>
+            <li>Ties don’t change the score</li>
+          </ul>
+          <hr style="border-color:rgba(255,255,255,.08); margin:14px 0">
+          <p class="sub" style="margin:0">Emoji buttons are accessible; hover for labels or use keyboard focus.</p>
+        </aside>
+      </div>
+      <footer>Made with vanilla HTML, CSS, and JavaScript.</footer>
+    </div>
+  </div>
+
+  <script>
+    // Elements
+    const startCard  = document.getElementById('startCard');
+    const startBtn   = document.getElementById('startBtn');
+    const startError = document.getElementById('startError');
+    const nameInput  = document.getElementById('playerName');
+    const winInput   = document.getElementById('winScore');
+
+    const gameArea   = document.getElementById('gameArea');
+    const playerLabel= document.getElementById('playerLabel');
+    const targetScore= document.getElementById('targetScore');
+    const pScoreEl   = document.getElementById('pScore');
+    const cScoreEl   = document.getElementById('cScore');
+
+    const buttons    = [...document.querySelectorAll('.choice')];
+    const roundMsg   = document.getElementById('roundMsg');
+    const roundTag   = document.getElementById('roundTag');
+
+    const youEmoji   = document.getElementById('youEmoji');
+    const youText    = document.getElementById('youText');
+    const cpuEmoji   = document.getElementById('cpuEmoji');
+    const cpuText    = document.getElementById('cpuText');
+    const whoYou     = document.getElementById('whoYou');
+
+    const finalBox   = document.getElementById('finalBox');
+    const finalMsg   = document.getElementById('finalMsg');
+    const playAgain  = document.getElementById('playAgain');
+    const newMatch   = document.getElementById('newMatch');
+
+    // State
+    let pScore = 0, cScore = 0, target = 5, playerName = 'Player', gameOver = false;
+    const EMOJI = { Rock:'✊', Paper:'✋', Scissors:'✌️' };
+    const CHOICES = Object.keys(EMOJI);
+    const BEATS = { Rock:'Scissors', Paper:'Rock', Scissors:'Paper' };
+
+    function validateStart(){
+      const name = (nameInput.value || '').trim() || 'Player';
+      const raw  = winInput.value;
+      const n = Number(raw);
+      if (!raw || !Number.isInteger(n) || n < 1){
+        startError.textContent = "Winning score must be a positive whole number.";
+        return null;
+      }
+      startError.textContent = "";
+      return { name, target:n };
+    }
+
+    function setButtonsEnabled(on){
+      buttons.forEach(b => b.disabled = !on);
+    }
+
+    function resetRoundUI(){
+      youEmoji.textContent = '–'; youText.textContent = '—';
+      cpuEmoji.textContent = '–'; cpuText.textContent = '—';
+      roundMsg.textContent = 'Make your move.';
+      roundTag.className = 'tag tie'; roundTag.textContent = 'READY';
+    }
+
+    function startGame(){
+      const v = validateStart(); if(!v) return;
+      playerName = v.name; target = v.target;
+      playerLabel.textContent = playerName;
+      targetScore.textContent = target;
+      whoYou.textContent = `${playerName} picked`;
+
+      pScore = 0; cScore = 0; gameOver = false;
+      pScoreEl.textContent = '0'; cScoreEl.textContent = '0';
+      resetRoundUI();
+      finalBox.classList.remove('show');
+
+      startCard.style.display = 'none';
+      gameArea.style.display = 'block';
+      setButtonsEnabled(true);
+    }
+
+    function playAgainSameSettings(){
+      pScore = 0; cScore = 0; gameOver = false;
+      pScoreEl.textContent = '0'; cScoreEl.textContent = '0';
+      resetRoundUI();
+      finalBox.classList.remove('show');
+      setButtonsEnabled(true);
+    }
+
+    function backToStart(){
+      // Allow changing settings
+      gameArea.style.display = 'none';
+      startCard.style.display = 'block';
+      finalBox.classList.remove('show');
+      setButtonsEnabled(false);
+    }
+
+    function computerChoice(){
+      return CHOICES[Math.floor(Math.random() * CHOICES.length)];
+    }
+
+    function decide(p, c){
+      if (p === c) return 'tie';
+      return BEATS[p] === c ? 'win' : 'lose';
+    }
+
+    function updateUI(pickP, pickC, outcome){
+      // choices
+      youEmoji.textContent = EMOJI[pickP];
+      youText.textContent = pickP;
+      cpuEmoji.textContent = EMOJI[pickC];
+      cpuText.textContent = pickC;
+
+      // round message + tag
+      roundMsg.classList.add('fade'); roundTag.classList.add('fade');
+      setTimeout(()=>{ roundMsg.classList.remove('fade'); roundTag.classList.remove('fade'); }, 600);
+
+      if (outcome === 'win'){
+        roundMsg.textContent = `${playerName} wins the round!`;
+        roundTag.textContent = 'WIN'; roundTag.className = 'tag win';
+      } else if (outcome === 'lose'){
+        roundMsg.textContent = `Computer wins the round.`;
+        roundTag.textContent = 'LOSE'; roundTag.className = 'tag lose';
+      } else {
+        roundMsg.textContent = `It's a tie.`; 
+        roundTag.textContent = 'TIE'; roundTag.className = 'tag tie';
+      }
+
+      // scores
+      pScoreEl.textContent = pScore.toString();
+      cScoreEl.textContent = cScore.toString();
+    }
+
+    function maybeEnd(){
+      if (pScore >= target || cScore >= target){
+        gameOver = true;
+        setButtonsEnabled(false);
+        finalMsg.textContent = pScore > cScore
+          ? `${playerName} wins the match!`
+          : `The Computer wins the match!`;
+        finalBox.classList.add('show');
+      }
+    }
+
+    function onPick(choice){
+      if (gameOver) return;
+      const cpu = computerChoice();
+      const result = decide(choice, cpu);
+      if (result === 'win') pScore += 1;
+      else if (result === 'lose') cScore += 1;
+      // (No score change on tie)
+      updateUI(choice, cpu, result);
+      maybeEnd();
+    }
+
+    // Events
+    startBtn.addEventListener('click', startGame);
+    buttons.forEach(b => b.addEventListener('click', () => onPick(b.dataset.choice)));
+    playAgain.addEventListener('click', playAgainSameSettings);
+    newMatch.addEventListener('click', backToStart);
+
+    // Quality-of-life: Enter key starts game
+    [nameInput, winInput].forEach(el => el.addEventListener('keydown', e=>{
+      if(e.key==='Enter') startGame();
+    }));
+  </script>
+</body>
+</html>
