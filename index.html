@@ -5,205 +5,361 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Catch the Falling Objects</title>
 <style>
-  :root{
-    --bg:#333;         /* dark gray background */
-    --card:#1f2937;
-    --text:#ffffff;    /* large white text */
-    --muted:#cbd5e1;
-    --good:#3aa7ff;    /* blue circles */
-    --bad:#ef4444;     /* red squares */
-    --paddle:#22c55e;  /* bright green paddle */
-    --accent:#60a5fa;
+  :root {
+    --bg: #0f1220;
+    --panel: #161a2e;
+    --accent: #39d353; /* paddle/OK accent */
+    --danger: #ff4d4f; /* red squares */
+    --text: #e8ecf1;
+    --muted: #9aa3b2;
   }
-  *{box-sizing:border-box}
-  body{
-    margin:0;
-    background:var(--bg);
-    color:var(--text);
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-    display:grid;
-    place-items:center;
-    min-height:100dvh;
-    padding:18px;
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center;
+    background: radial-gradient(1200px 800px at 50% -10%, #1b2040 0%, var(--bg) 60%);
+    color: var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
   }
-  .wrap{
-    width:min(840px,96vw);
-    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-    border:1px solid rgba(255,255,255,.12);
-    border-radius:16px;
-    padding:18px;
+  .wrap {
+    width: min(920px, 96vw);
   }
-  h1{margin:0 0 8px;font-size:clamp(20px,2.5vw + 12px,32px)}
-  p.sub{margin:0 0 10px;color:var(--muted)}
-  .grid{display:grid;grid-template-columns:1fr 160px;gap:10px}
-  input{
-    width:100%;
-    background:#0b1220;
-    color:var(--text);
-    border:1px solid rgba(255,255,255,.2);
-    padding:12px 14px;border-radius:12px;
+  header {
+    text-align: center; margin-bottom: 12px; color: var(--muted); font-size: 14px;
+    letter-spacing: .2px;
+  }
+  #gamePanel {
+    background: var(--panel); border: 1px solid #222641; border-radius: 16px;
+    padding: 14px; box-shadow: 0 8px 26px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.02);
+  }
+  .canvasWrap {
+    position: relative; border-radius: 12px; overflow: hidden; background: #0b0e1a;
+    box-shadow: inset 0 0 0 1px #1e2342;
+  }
+  canvas { display: block; width: 100%; height: auto; }
+  /* Overlays */
+  .overlay {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    background: linear-gradient(180deg, rgba(5,8,18,.72), rgba(5,8,18,.88));
+    padding: 20px;
+  }
+  .card {
+    width: min(560px, 92%); background: #0f1430; border: 1px solid #252a50;
+    border-radius: 16px; padding: 20px; text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,.45);
+  }
+  .card h1 { margin: 6px 0 12px; font-size: 26px; }
+  .card p { margin: 8px 0 14px; color: var(--muted); }
+  .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  input[type="text"]{
+    background: #0b102a; color: var(--text); border: 1px solid #2a3162;
+    border-radius: 10px; padding: 10px 12px; min-width: 220px; font-size: 16px;
   }
   button{
-    border:0;border-radius:12px;cursor:pointer;
-    padding:12px 14px;font-weight:700;
-    background:linear-gradient(90deg,#10b981,#22c55e);
-    color:#062016;box-shadow:0 10px 18px rgba(34,197,94,.25);
+    cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; font-weight: 600;
+    background: var(--accent); color: #0b1a0f; transition: transform .05s ease, filter .2s ease;
   }
-  button.ghost{background:transparent;color:var(--muted);border:1px dashed rgba(255,255,255,.25);box-shadow:none}
-  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-  .hud{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:10px 0;color:var(--muted)}
-  .hud b{color:var(--text)}
-  canvas{width:100%;height:460px;background:#0b1220;border-radius:14px;display:block}
-  .center{display:flex;justify-content:center;align-items:center}
-  .hidden{display:none !important}
-  footer{margin-top:10px;color:var(--muted);font-size:12px;text-align:center}
+  button.secondary{ background: #33406b; color: #e6ecff; }
+  button:hover{ filter: brightness(1.05); }
+  button:active{ transform: translateY(1px); }
+  /* HUD */
+  .hud {
+    position: absolute; inset: 0; pointer-events: none; font-weight: 700;
+    padding: 10px 12px; display: grid; grid-template-columns: 1fr auto; align-items: start;
+    font-size: clamp(14px, 1.6vw, 18px);
+  }
+  .name { color: #8bd8ff; }
+  .score { color: #d5ffcf; }
+  .timer { color: #ffe6b3; text-align: right; }
+  .centerTop { text-align: center; grid-column: 1 / -1; }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>🕹️ Catch the Falling Objects</h1>
-    <p class="sub">Move the paddle to catch blue circles (+10). Avoid red squares (–5). You have 30 seconds!</p>
+    <header>Catch the Falling Objects · HTML Canvas Game</header>
+    <section id="gamePanel">
+      <div class="canvasWrap">
+        <canvas id="game" width="900" height="540" aria-label="Game Canvas"></canvas>
 
-    <!-- Setup -->
-    <section id="setup">
-      <div class="grid">
-        <input id="playerName" type="text" placeholder="Enter your name…" autocomplete="off" />
-        <button id="startBtn">Start Game</button>
-      </div>
-      <div class="row">
-        <button id="demoBtn" class="ghost">Use Demo Name</button>
-      </div>
-    </section>
+        <!-- HUD (in front of canvas) -->
+        <div class="hud">
+          <div class="left">
+            <div class="name" id="hudName"></div>
+            <div class="score">Score: <span id="hudScore">0</span></div>
+          </div>
+          <div class="timer">Time: <span id="hudTime">30.0</span>s</div>
+          <div class="centerTop" id="msg"></div>
+        </div>
 
-    <!-- Game UI -->
-    <section id="ui" class="hidden">
-      <div class="hud">
-        <span>Player: <b id="nameLabel"></b></span>
-        <span>Score: <b id="scoreLabel">0</b></span>
-        <span>Time: <b id="timeLabel">30.0</b>s</span>
+        <!-- Start overlay -->
+        <div class="overlay" id="startOverlay">
+          <div class="card">
+            <h1>Catch the Falling Objects</h1>
+            <p>Move the paddle with your mouse. Catch <b>blue circles</b> for +10.
+              Avoid <b style="color:var(--danger)">red squares</b> (−5). You have 30 seconds!</p>
+            <div class="row" style="justify-content:center;margin-top:6px">
+              <input id="playerName" type="text" placeholder="Enter your name" />
+              <button id="startBtn">Start Game</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Game Over overlay -->
+        <div class="overlay" id="gameOverOverlay" style="display:none">
+          <div class="card">
+            <h1 style="font-size:32px">Game Over</h1>
+            <p id="finalLine">Nice run!</p>
+            <div class="row">
+              <button id="playAgainBtn">Play Again</button>
+              <button class="secondary" id="quitBtn">Quit to Start</button>
+            </div>
+          </div>
+        </div>
+
       </div>
-      <canvas id="game" width="800" height="460" aria-label="Game canvas"></canvas>
-      <div class="row">
-        <button id="againBtn" class="hidden">Play Again</button>
-        <button id="changeBtn" class="ghost hidden">Change Name</button>
-      </div>
-      <footer>Tip: Move your mouse (or drag on touch) to control the paddle.</footer>
     </section>
   </div>
 
 <script>
 (() => {
-  // Elements
-  const setup = document.getElementById('setup');
-  const startBtn = document.getElementById('startBtn');
-  const demoBtn = document.getElementById('demoBtn');
-  const nameInput = document.getElementById('playerName');
-
-  const ui = document.getElementById('ui');
-  const nameLabel = document.getElementById('nameLabel');
-  const scoreLabel = document.getElementById('scoreLabel');
-  const timeLabel = document.getElementById('timeLabel');
-  const againBtn = document.getElementById('againBtn');
-  const changeBtn = document.getElementById('changeBtn');
-
+  // ---------- Canvas & context ----------
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
 
-  // Layout helpers – keep canvas crisp on HiDPI devices
-  const fitCanvas = () => {
-    const ratio = window.devicePixelRatio || 1;
-    const cssWidth = canvas.clientWidth;
-    const cssHeight = canvas.clientHeight;
-    canvas.width = Math.round(cssWidth * ratio);
-    canvas.height = Math.round(cssHeight * ratio);
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-  };
-  fitCanvas();
-  window.addEventListener('resize', fitCanvas);
+  // ---------- UI elements ----------
+  const startOverlay = document.getElementById('startOverlay');
+  const gameOverOverlay = document.getElementById('gameOverOverlay');
+  const startBtn = document.getElementById('startBtn');
+  const playAgainBtn = document.getElementById('playAgainBtn');
+  const quitBtn = document.getElementById('quitBtn');
+  const nameInput = document.getElementById('playerName');
+  const hudName = document.getElementById('hudName');
+  const hudScore = document.getElementById('hudScore');
+  const hudTime = document.getElementById('hudTime');
+  const finalLine = document.getElementById('finalLine');
 
-  // Game state
-  const state = {
-    running:false,
-    over:false,
-    name:"",
-    score:0,
-    time:30,           // seconds
-    last:0,
-    spawnAcc:0,
-    paddle:{ x: canvas.clientWidth/2, y: canvas.clientHeight-18, w:120, h:14 },
-    objects:[],        // falling objects
-  };
+  // ---------- Game state ----------
+  const GAME_DURATION = 30_000; // ms
+  const PADDLE = { w: 120, h: 16, x: (900-120)/2, y: 540-26, speed: 0 };
+  const SPAWN = { every: 650, jitter: 280 }; // ms
+  let objects = []; // falling items
+  let nextSpawnAt = 0;
+  let score = 0;
+  let playerName = '';
+  let timeLeftMs = GAME_DURATION;
+  let state = 'start'; // 'start' | 'playing' | 'gameover'
+  let lastTs = 0;
 
-  // Spawn parameters
-  const SPAWN_EVERY = 550; // ms
-  const SPEED_BASE = 120;  // px/s base fall speed
-  const SPEED_GROW = 26;   // speed increases each 10s
-  const MIN_GAP = 36;      // pixels between newly spawned objects
-  const GOOD_CHANCE = 0.7; // 70% circles, 30% squares
+  // ---------- Helpers ----------
+  function rand(min, max){ return Math.random()*(max-min)+min; }
+  function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+  function resetGame(keepName=false){
+    objects = [];
+    nextSpawnAt = 0;
+    score = 0;
+    timeLeftMs = GAME_DURATION;
+    PADDLE.x = (canvas.width - PADDLE.w)/2;
+    if(!keepName){ playerName = ''; nameInput.value = ''; hudName.textContent=''; }
+    hudScore.textContent = score;
+    hudTime.textContent = (timeLeftMs/1000).toFixed(1);
+    document.getElementById('msg').textContent = '';
+  }
 
-  // Controls: mouse & touch
-  const pointerToX = (evt) => {
+  // ---------- Input (mouse) ----------
+  canvas.addEventListener('mousemove', (e) => {
+    if(state !== 'playing') return;
     const rect = canvas.getBoundingClientRect();
-    let x;
-    if(evt.touches && evt.touches[0]){
-      x = evt.touches[0].clientX - rect.left;
+    const scaleX = canvas.width / rect.width;
+    const x = (e.clientX - rect.left) * scaleX;
+    PADDLE.x = clamp(x - PADDLE.w/2, 0, canvas.width - PADDLE.w);
+  });
+
+  // ---------- Spawning ----------
+  function spawnObject(){
+    // 65% blue circles (good), 35% red squares (bad)
+    const good = Math.random() < 0.65;
+    const x = rand(20, canvas.width - 20);
+    const vy = rand(140, 240); // px/s
+    if(good){
+      objects.push({ type:'blue', x, y:-20, r:12, vy });
     } else {
-      x = evt.clientX - rect.left;
+      objects.push({ type:'red', x, y:-22, size:22, vy });
     }
-    return Math.max(0, Math.min(canvas.clientWidth, x));
-  };
-  const movePaddle = (x) => {
-    const w = state.paddle.w;
-    state.paddle.x = Math.max(w/2, Math.min(canvas.clientWidth - w/2, x));
-  };
-  canvas.addEventListener('mousemove', (e)=> movePaddle(pointerToX(e)));
-  canvas.addEventListener('touchstart', (e)=> { movePaddle(pointerToX(e)); e.preventDefault(); }, {passive:false});
-  canvas.addEventListener('touchmove', (e)=> { movePaddle(pointerToX(e)); e.preventDefault(); }, {passive:false});
+  }
 
-  // Utils
-  const rand = (min,max) => Math.random()*(max-min)+min;
-  const spawnObject = () => {
-    // ensure some spacing from existing objects
-    let tries = 0, x;
-    do {
-      x = rand(20, canvas.clientWidth - 20);
-      tries++;
-      if(tries > 20) break;
-    } while (state.objects.some(o => Math.abs(o.x - x) < MIN_GAP));
+  // ---------- Collision ----------
+  function intersectsPaddle(obj){
+    const pad = { x:PADDLE.x, y:PADDLE.y, w:PADDLE.w, h:PADDLE.h };
+    if(obj.type === 'blue'){
+      // circle vs rect
+      const cx = obj.x, cy = obj.y, r = obj.r;
+      const rx = clamp(cx, pad.x, pad.x + pad.w);
+      const ry = clamp(cy, pad.y, pad.y + pad.h);
+      const dx = cx - rx, dy = cy - ry;
+      return (dx*dx + dy*dy) <= r*r;
+    } else {
+      // axis-aligned square vs rect
+      const s = obj.size;
+      return !(obj.x + s/2 < pad.x || obj.x - s/2 > pad.x + pad.w ||
+               obj.y + s/2 < pad.y || obj.y - s/2 > pad.y + pad.h);
+    }
+  }
 
-    const isGood = Math.random() < GOOD_CHANCE;
-    state.objects.push({
-      kind: isGood ? 'good':'bad',
-      x, y: -20,
-      r: isGood ? 12 : 14, // radius for circle and half-size for square
-      gone:false
-    });
-  };
+  // ---------- Drawing ----------
+  function draw(){
+    // background
+    const g = ctx.createLinearGradient(0,0,0,canvas.height);
+    g.addColorStop(0,'#0b0f24');
+    g.addColorStop(1,'#09101e');
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // Collision helpers
-  const collideCircleRect = (cx,cy,r, rx,ry,rw,rh) => {
-    const closestX = Math.max(rx, Math.min(cx, rx + rw));
-    const closestY = Math.max(ry, Math.min(cy, ry + rh));
-    const dx = cx - closestX;
-    const dy = cy - closestY;
-    return (dx*dx + dy*dy) <= r*r;
-  };
-  const collideSquareRect = (sx,sy,hs, rx,ry,rw,rh) => {
-    const left = sx - hs, top = sy - hs, size = hs*2;
-    return !(left+size < rx || left > rx+rw || top+size < ry || top > ry+rh);
-  };
-
-  // Drawing
-  const draw = () => {
-    // clear
-    ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
+    // subtle stars
+    ctx.fillStyle = 'rgba(255,255,255,.06)';
+    for(let i=0;i<60;i++){
+      const x = (i*137)%canvas.width;
+      const y = (i*53)%canvas.height;
+      ctx.fillRect(x,y,1,1);
+    }
 
     // paddle
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--paddle').trim();
-    const px = state.paddle.x - state.paddle.w/2;
-    const py = state.paddle.y - state.paddle.h/2;
-    ctx.fillRect(px, py, state.paddle.w, state.paddle.h);
+    ctx.fillStyle = '#2ee170';
+    ctx.shadowColor = 'rgba(46,225,112,.35)';
+    ctx.shadowBlur = 12;
+    roundRect(ctx, PADDLE.x, PADDLE.y, PADDLE.w, PADDLE.h, 8);
+    ctx.fill();
+    ctx.shadowBlur = 0;
 
     // objects
-    for(const o of state.objects){
-      if(
+    for(const o of objects){
+      if(o.type==='blue'){
+        ctx.fillStyle = '#57b1ff';
+        ctx.beginPath();
+        ctx.arc(o.x, o.y, o.r, 0, Math.PI*2);
+        ctx.fill();
+      } else {
+        ctx.fillStyle = '#ff5257';
+        // draw centered square
+        ctx.fillRect(o.x - o.size/2, o.y - o.size/2, o.size, o.size);
+      }
+    }
+  }
+
+  function roundRect(ctx, x, y, w, h, r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.lineTo(x+w-r,y);
+    ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r);
+    ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h);
+    ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r);
+    ctx.quadraticCurveTo(x,y,x+r,y);
+    ctx.closePath();
+  }
+
+  // ---------- Loop ----------
+  function step(ts){
+    if(!lastTs) lastTs = ts;
+    const dt = (ts - lastTs) / 1000; // seconds
+    lastTs = ts;
+
+    if(state === 'playing'){
+      // timer
+      timeLeftMs -= (ts === 0 ? 0 : (dt * 1000));
+      if(timeLeftMs <= 0){
+        timeLeftMs = 0;
+        endGame();
+      }
+      hudTime.textContent = (timeLeftMs/1000).toFixed(1);
+
+      // spawn
+      if(nextSpawnAt <= 0){ nextSpawnAt = SPAWN.every + Math.random()*SPAWN.jitter; }
+      nextSpawnAt -= dt*1000;
+      while(nextSpawnAt <= 0){
+        spawnObject();
+        nextSpawnAt += SPAWN.every + Math.random()*SPAWN.jitter;
+      }
+
+      // update objects
+      const padTop = PADDLE.y;
+      for(const o of objects){
+        o.y += o.vy * dt;
+      }
+      // collisions & cleanup
+      let i = 0;
+      while(i < objects.length){
+        const o = objects[i];
+        let remove = false;
+
+        if(intersectsPaddle(o)){
+          if(o.type==='blue') score += 10;
+          else score = Math.max(0, score - 5);
+          hudScore.textContent = score;
+          remove = true;
+        } else if(o.y - 40 > canvas.height){
+          remove = true; // fell off screen
+        }
+
+        if(remove) objects.splice(i,1);
+        else i++;
+      }
+    }
+
+    // draw scene
+    draw();
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+
+  // ---------- State transitions ----------
+  function startGame(){
+    playerName = (nameInput.value || 'Player').trim().slice(0,24);
+    hudName.textContent = `Name: ${playerName}`;
+    resetGame(true);
+    startOverlay.style.display = 'none';
+    gameOverOverlay.style.display = 'none';
+    state = 'playing';
+    lastTs = 0;
+  }
+
+  function endGame(){
+    state = 'gameover';
+    finalLine.innerHTML = `<b>${playerName}</b>, your final score is <b>${score}</b>.`;
+    gameOverOverlay.style.display = 'grid';
+  }
+
+  function backToStart(){
+    resetGame(false);
+    gameOverOverlay.style.display = 'none';
+    startOverlay.style.display = 'grid';
+    state = 'start';
+  }
+
+  // ---------- Events ----------
+  startBtn.addEventListener('click', startGame);
+  playAgainBtn.addEventListener('click', () => { resetGame(true); gameOverOverlay.style.display='none'; state='playing'; lastTs=0; });
+  quitBtn.addEventListener('click', backToStart);
+  nameInput.addEventListener('keyup', (e)=>{ if(e.key==='Enter') startGame(); });
+
+  // ---------- Make canvas crisp on HiDPI ----------
+  function resizeForDPR(){
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.width * (540/900) * dpr); // preserve aspect ratio
+    PADDLE.y = canvas.height - 26 * dpr;
+    PADDLE.w = 120 * dpr;
+    PADDLE.h = 16 * dpr;
+  }
+  // initial sync once layout is stable
+  const ro = new ResizeObserver(() => resizeForDPR());
+  ro.observe(canvas);
+
+  // Accessibility focus to canvas on start
+  startBtn.addEventListener('click', () => canvas.focus());
+
+})();
+</script>
+</body>
+</html>
+
