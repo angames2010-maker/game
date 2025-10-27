@@ -1,302 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Guess the Number — Gemini Canvas Project</title>
-  <style>
-    :root{
-      --bg:#0f172a;
-      --card:#111827;
-      --muted:#94a3b8;
-      --accent:#22c55e;
-      --danger:#ef4444;
-      --info:#3b82f6;
-      --text:#e5e7eb;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      color:var(--text);
-      background: radial-gradient(1200px 600px at 20% -20%, #1f2937, transparent),
-                  radial-gradient(1000px 600px at 120% 0%, #1e293b, transparent),
-                  var(--bg);
-      min-height:100dvh;
-      display:grid;
-      place-items:center;
-      padding:24px;
-    }
-    .card{
-      width:min(720px, 96vw);
-      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
-      backdrop-filter: blur(6px);
-      border:1px solid rgba(255,255,255,0.08);
-      border-radius:18px;
-      padding:24px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-    }
-    h1{margin:0 0 8px;font-size:clamp(20px, 2.4vw + 12px, 32px)}
-    p.sub{margin-top:0;color:var(--muted)}
-    .row{display:flex; gap:12px; flex-wrap:wrap}
-    label{font-size:14px; color:var(--muted)}
-    input[type="text"], input[type="number"]{
-      width:100%;
-      appearance: textfield;
-      background:#0b1220;
-      color:var(--text);
-      border:1px solid rgba(255,255,255,0.14);
-      padding:12px 14px;
-      border-radius:12px;
-      outline: none;
-    }
-    .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
-    .btn{
-      border:0;
-      background:linear-gradient(90deg, #10b981, #22c55e);
-      color:#07120f;
-      font-weight:700;
-      padding:12px 16px;
-      border-radius:12px;
-      cursor:pointer;
-      transition: transform .06s ease, box-shadow .2s ease, opacity .2s ease;
-      box-shadow: 0 10px 20px rgba(34,197,94,.25);
-    }
-    .btn.secondary{
-      background:linear-gradient(90deg, #3b82f6, #60a5fa);
-      color:#061224;
-      box-shadow: 0 10px 20px rgba(59,130,246,.25);
-    }
-    .btn.ghost{
-      background:transparent;
-      color:var(--muted);
-      border:1px dashed rgba(255,255,255,.2);
-      box-shadow:none;
-    }
-    .btn:active{ transform: translateY(1px) }
-    .section{margin-top:18px; padding-top:14px; border-top:1px dashed rgba(255,255,255,.12)}
-    .status{
-      margin-top:8px;
-      padding:12px;
-      border-radius:12px;
-      background:#0b1220;
-      border:1px solid rgba(255,255,255,0.06);
-      min-height:56px;
-      display:flex; align-items:center;
-    }
-    .status.ok{ border-color: rgba(34,197,94,.35) }
-    .status.low{ border-color: rgba(59,130,246,.35) }
-    .status.high{ border-color: rgba(239,68,68,.35) }
-    .muted{color:var(--muted)}
-    .counter{font-weight:700}
-    .hint{font-size:14px;color:var(--muted)}
-    .hidden{display:none !important}
-    footer{margin-top:14px;color:var(--muted);font-size:12px;text-align:center}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Catch the Falling Objects</title>
+<style>
+  :root{
+    --bg:#333;         /* dark gray background */
+    --card:#1f2937;
+    --text:#ffffff;    /* large white text */
+    --muted:#cbd5e1;
+    --good:#3aa7ff;    /* blue circles */
+    --bad:#ef4444;     /* red squares */
+    --paddle:#22c55e;  /* bright green paddle */
+    --accent:#60a5fa;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    display:grid;
+    place-items:center;
+    min-height:100dvh;
+    padding:18px;
+  }
+  .wrap{
+    width:min(840px,96vw);
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:16px;
+    padding:18px;
+  }
+  h1{margin:0 0 8px;font-size:clamp(20px,2.5vw + 12px,32px)}
+  p.sub{margin:0 0 10px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:1fr 160px;gap:10px}
+  input{
+    width:100%;
+    background:#0b1220;
+    color:var(--text);
+    border:1px solid rgba(255,255,255,.2);
+    padding:12px 14px;border-radius:12px;
+  }
+  button{
+    border:0;border-radius:12px;cursor:pointer;
+    padding:12px 14px;font-weight:700;
+    background:linear-gradient(90deg,#10b981,#22c55e);
+    color:#062016;box-shadow:0 10px 18px rgba(34,197,94,.25);
+  }
+  button.ghost{background:transparent;color:var(--muted);border:1px dashed rgba(255,255,255,.25);box-shadow:none}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .hud{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:10px 0;color:var(--muted)}
+  .hud b{color:var(--text)}
+  canvas{width:100%;height:460px;background:#0b1220;border-radius:14px;display:block}
+  .center{display:flex;justify-content:center;align-items:center}
+  .hidden{display:none !important}
+  footer{margin-top:10px;color:var(--muted);font-size:12px;text-align:center}
+</style>
 </head>
 <body>
-  <main class="card">
-    <h1>🎯 Guess the Number</h1>
-    <p class="sub">A simple game where you try to guess a secret number. Built by guiding an AI!</p>
+  <div class="wrap">
+    <h1>🕹️ Catch the Falling Objects</h1>
+    <p class="sub">Move the paddle to catch blue circles (+10). Avoid red squares (–5). You have 30 seconds!</p>
 
-    <!-- START SCREEN -->
+    <!-- Setup -->
     <section id="setup">
       <div class="grid">
-        <div>
-          <label for="playerName">Your name</label>
-          <input id="playerName" type="text" placeholder="e.g., Carmen" autocomplete="off"/>
-        </div>
-        <div>
-          <label for="maxNumber">Max number (min 10)</label>
-          <input id="maxNumber" type="number" min="10" step="1" placeholder="100"/>
-        </div>
+        <input id="playerName" type="text" placeholder="Enter your name…" autocomplete="off" />
+        <button id="startBtn">Start Game</button>
       </div>
-      <div class="section row">
-        <button id="startBtn" class="btn">Start Game</button>
-        <button id="fillDemo" class="btn ghost" title="Quick fill demo data">Use Demo Values</button>
-      </div>
-      <p class="hint">We'll pick a secret number between 1 and your chosen max number.</p>
-    </section>
-
-    <!-- GAME SCREEN -->
-    <section id="game" class="hidden" aria-live="polite">
-      <p><span class="muted">Player:</span> <strong id="playerLabel"></strong></p>
-      <p class="hint">I'm thinking of a number between 1 and <span id="rangeLabel">100</span>. Take a guess!</p>
-
       <div class="row">
-        <input id="guessInput" type="number" inputmode="numeric" placeholder="Enter your guess…" />
-        <button id="guessBtn" class="btn secondary">Submit Guess</button>
-      </div>
-
-      <div class="section">
-        <div id="status" class="status"><span class="muted">Waiting for your first guess…</span></div>
-        <p class="hint">
-          Attempts: <span id="attempts" class="counter">0</span>
-          <span id="encouragement" class="muted"></span>
-        </p>
-      </div>
-
-      <div class="section row">
-        <button id="playAgainBtn" class="btn hidden">Play Again</button>
-        <button id="changeSettingsBtn" class="btn ghost hidden">Change Name / Max</button>
+        <button id="demoBtn" class="ghost">Use Demo Name</button>
       </div>
     </section>
 
-    <footer>Tip: Press Enter to submit your guess.</footer>
-  </main>
+    <!-- Game UI -->
+    <section id="ui" class="hidden">
+      <div class="hud">
+        <span>Player: <b id="nameLabel"></b></span>
+        <span>Score: <b id="scoreLabel">0</b></span>
+        <span>Time: <b id="timeLabel">30.0</b>s</span>
+      </div>
+      <canvas id="game" width="800" height="460" aria-label="Game canvas"></canvas>
+      <div class="row">
+        <button id="againBtn" class="hidden">Play Again</button>
+        <button id="changeBtn" class="ghost hidden">Change Name</button>
+      </div>
+      <footer>Tip: Move your mouse (or drag on touch) to control the paddle.</footer>
+    </section>
+  </div>
 
-  <script>
-    // Elements
-    const setup = document.getElementById('setup');
-    const game = document.getElementById('game');
-    const playerInput = document.getElementById('playerName');
-    const maxInput = document.getElementById('maxNumber');
-    const startBtn = document.getElementById('startBtn');
-    const fillDemo = document.getElementById('fillDemo');
+<script>
+(() => {
+  // Elements
+  const setup = document.getElementById('setup');
+  const startBtn = document.getElementById('startBtn');
+  const demoBtn = document.getElementById('demoBtn');
+  const nameInput = document.getElementById('playerName');
 
-    const playerLabel = document.getElementById('playerLabel');
-    const rangeLabel = document.getElementById('rangeLabel');
-    const guessInput = document.getElementById('guessInput');
-    const guessBtn = document.getElementById('guessBtn');
-    const statusBox = document.getElementById('status');
-    const attemptsEl = document.getElementById('attempts');
-    const encouragementEl = document.getElementById('encouragement');
-    const playAgainBtn = document.getElementById('playAgainBtn');
-    const changeSettingsBtn = document.getElementById('changeSettingsBtn');
+  const ui = document.getElementById('ui');
+  const nameLabel = document.getElementById('nameLabel');
+  const scoreLabel = document.getElementById('scoreLabel');
+  const timeLabel = document.getElementById('timeLabel');
+  const againBtn = document.getElementById('againBtn');
+  const changeBtn = document.getElementById('changeBtn');
 
-    // Game state
-    let secret = 0;
-    let maxNum = 100;
-    let attempts = 0;
-    let finished = false;
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
 
-    function setStatus(text, type){
-      statusBox.className = 'status'; // reset
-      if(type){ statusBox.classList.add(type); }
-      statusBox.textContent = text;
+  // Layout helpers – keep canvas crisp on HiDPI devices
+  const fitCanvas = () => {
+    const ratio = window.devicePixelRatio || 1;
+    const cssWidth = canvas.clientWidth;
+    const cssHeight = canvas.clientHeight;
+    canvas.width = Math.round(cssWidth * ratio);
+    canvas.height = Math.round(cssHeight * ratio);
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  };
+  fitCanvas();
+  window.addEventListener('resize', fitCanvas);
+
+  // Game state
+  const state = {
+    running:false,
+    over:false,
+    name:"",
+    score:0,
+    time:30,           // seconds
+    last:0,
+    spawnAcc:0,
+    paddle:{ x: canvas.clientWidth/2, y: canvas.clientHeight-18, w:120, h:14 },
+    objects:[],        // falling objects
+  };
+
+  // Spawn parameters
+  const SPAWN_EVERY = 550; // ms
+  const SPEED_BASE = 120;  // px/s base fall speed
+  const SPEED_GROW = 26;   // speed increases each 10s
+  const MIN_GAP = 36;      // pixels between newly spawned objects
+  const GOOD_CHANCE = 0.7; // 70% circles, 30% squares
+
+  // Controls: mouse & touch
+  const pointerToX = (evt) => {
+    const rect = canvas.getBoundingClientRect();
+    let x;
+    if(evt.touches && evt.touches[0]){
+      x = evt.touches[0].clientX - rect.left;
+    } else {
+      x = evt.clientX - rect.left;
     }
+    return Math.max(0, Math.min(canvas.clientWidth, x));
+  };
+  const movePaddle = (x) => {
+    const w = state.paddle.w;
+    state.paddle.x = Math.max(w/2, Math.min(canvas.clientWidth - w/2, x));
+  };
+  canvas.addEventListener('mousemove', (e)=> movePaddle(pointerToX(e)));
+  canvas.addEventListener('touchstart', (e)=> { movePaddle(pointerToX(e)); e.preventDefault(); }, {passive:false});
+  canvas.addEventListener('touchmove', (e)=> { movePaddle(pointerToX(e)); e.preventDefault(); }, {passive:false});
 
-    function randomInt(min, max){
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
+  // Utils
+  const rand = (min,max) => Math.random()*(max-min)+min;
+  const spawnObject = () => {
+    // ensure some spacing from existing objects
+    let tries = 0, x;
+    do {
+      x = rand(20, canvas.clientWidth - 20);
+      tries++;
+      if(tries > 20) break;
+    } while (state.objects.some(o => Math.abs(o.x - x) < MIN_GAP));
 
-    function startGame(){
-      const name = (playerInput.value || '').trim();
-      const rawMax = maxInput.value.trim();
-      const chosenMax = Number(rawMax);
-
-      if(!name){
-        alert('Please enter your name.'); return;
-      }
-      if(!rawMax || !Number.isInteger(chosenMax)){
-        alert('Please enter a whole number for "Max number".'); return;
-      }
-      if(chosenMax < 10){
-        alert('Max number must be at least 10.'); return;
-      }
-
-      playerLabel.textContent = name;
-      maxNum = chosenMax;
-      rangeLabel.textContent = String(maxNum);
-      secret = randomInt(1, maxNum);
-      attempts = 0;
-      finished = false;
-
-      attemptsEl.textContent = attempts;
-      encouragementEl.textContent = '';
-      setStatus('Game started! Make your first guess.', null);
-
-      setup.classList.add('hidden');
-      game.classList.remove('hidden');
-      guessInput.value = '';
-      guessInput.min = 1;
-      guessInput.max = maxNum;
-      guessInput.focus();
-      playAgainBtn.classList.add('hidden');
-      changeSettingsBtn.classList.add('hidden');
-      guessInput.disabled = false;
-      guessBtn.disabled = false;
-    }
-
-    function handleGuess(){
-      if(finished) return;
-
-      const val = guessInput.value.trim();
-      if(val === ''){ alert('Enter a number to guess.'); return; }
-      const guess = Number(val);
-
-      if(!Number.isInteger(guess)){
-        alert('Please enter a whole number (no decimals).');
-        guessInput.value = '';
-        guessInput.focus();
-        return;
-      }
-      if(guess < 1 || guess > maxNum){
-        alert('Your guess must be between 1 and ' + maxNum + '.');
-        guessInput.select();
-        return;
-      }
-
-      attempts += 1;
-      attemptsEl.textContent = attempts;
-
-      if(attempts === 7){
-        encouragementEl.textContent = ' • Keep going, you\'re getting closer!';
-      } else if(attempts === 10){
-        encouragementEl.textContent = ' • Pro tip: Try narrowing the range by halves.';
-      }
-
-      if(guess === secret){
-        finished = true;
-        setStatus(`🎉 Correct! The number was ${secret}. Great job, ${playerLabel.textContent}! You won in ${attempts} attempt${attempts===1?'':'s'}.`, 'ok');
-        guessInput.disabled = true;
-        guessBtn.disabled = true;
-        playAgainBtn.classList.remove('hidden');
-        changeSettingsBtn.classList.remove('hidden');
-      } else if(guess < secret){
-        setStatus('Too low! Try again.', 'low');
-      } else {
-        setStatus('Too high! Try again.', 'high');
-      }
-
-      guessInput.value = '';
-      guessInput.focus();
-    }
-
-    function resetToSetup(){
-      setup.classList.remove('hidden');
-      game.classList.add('hidden');
-      playerInput.focus();
-    }
-
-    function playAgain(){
-      secret = randomInt(1, maxNum);
-      attempts = 0;
-      finished = false;
-
-      attemptsEl.textContent = attempts;
-      encouragementEl.textContent = '';
-      setStatus('New round! Make your first guess.', null);
-
-      guessInput.disabled = false;
-      guessBtn.disabled = false;
-      guessInput.value = '';
-      guessInput.focus();
-      playAgainBtn.classList.add('hidden');
-      changeSettingsBtn.classList.add('hidden');
-    }
-
-    // Events
-    startBtn.addEventListener('click', startGame);
-    fillDemo.addEventListener('click', () => {
-      playerInput.value = 'Player One';
-      maxInput.value = '100';
-      playerInput.focus();
+    const isGood = Math.random() < GOOD_CHANCE;
+    state.objects.push({
+      kind: isGood ? 'good':'bad',
+      x, y: -20,
+      r: isGood ? 12 : 14, // radius for circle and half-size for square
+      gone:false
     });
-    guessBtn.addEventListener('click', handleGuess);
-    guessInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ handleGuess(); }});
-    playAgainBtn.addEventListener('click', playAgain);
-    changeSettingsBtn.addEventListener('click', resetToSetup);
-  </script>
-</body>
-</html>
+  };
+
+  // Collision helpers
+  const collideCircleRect = (cx,cy,r, rx,ry,rw,rh) => {
+    const closestX = Math.max(rx, Math.min(cx, rx + rw));
+    const closestY = Math.max(ry, Math.min(cy, ry + rh));
+    const dx = cx - closestX;
+    const dy = cy - closestY;
+    return (dx*dx + dy*dy) <= r*r;
+  };
+  const collideSquareRect = (sx,sy,hs, rx,ry,rw,rh) => {
+    const left = sx - hs, top = sy - hs, size = hs*2;
+    return !(left+size < rx || left > rx+rw || top+size < ry || top > ry+rh);
+  };
+
+  // Drawing
+  const draw = () => {
+    // clear
+    ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
+
+    // paddle
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--paddle').trim();
+    const px = state.paddle.x - state.paddle.w/2;
+    const py = state.paddle.y - state.paddle.h/2;
+    ctx.fillRect(px, py, state.paddle.w, state.paddle.h);
+
+    // objects
+    for(const o of state.objects){
+      if(
