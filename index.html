@@ -3,369 +3,300 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Rock • Paper • Scissors</title>
+  <title>Guess the Number — Gemini Canvas Project</title>
   <style>
     :root{
-      --bg:#0f1220;
-      --card:#171a2b;
-      --ink:#e9ecff;
-      --muted:#aab0d9;
-      --win:#29cf7f;
-      --lose:#ff5468;
-      --tie:#9aa3ff;
-      --accent:#7b8cff;
+      --bg:#0f172a;
+      --card:#111827;
+      --muted:#94a3b8;
+      --accent:#22c55e;
+      --danger:#ef4444;
+      --info:#3b82f6;
+      --text:#e5e7eb;
     }
     *{box-sizing:border-box}
     body{
-      margin:0; min-height:100dvh;
-      display:grid; place-items:center;
-      background: radial-gradient(80% 80% at 50% 0%, #1a1d31 0%, var(--bg) 60%);
-      color:var(--ink); font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background: radial-gradient(1200px 600px at 20% -20%, #1f2937, transparent),
+                  radial-gradient(1000px 600px at 120% 0%, #1e293b, transparent),
+                  var(--bg);
+      min-height:100dvh;
+      display:grid;
+      place-items:center;
+      padding:24px;
     }
-    .wrap{
-      width:min(900px, 92vw);
-      background:var(--card);
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:22px; padding:28px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.45);
-    }
-    h1{margin:0 0 6px; font-size:clamp(24px, 2.6vw, 34px); letter-spacing:.3px}
-    .sub{color:var(--muted); margin:0 0 20px; font-size:14px}
-    .row{display:flex; gap:16px; flex-wrap:wrap}
     .card{
-      background:#12162a; border:1px solid rgba(255,255,255,.06);
-      border-radius:16px; padding:16px
+      width:min(720px, 96vw);
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      backdrop-filter: blur(6px);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:18px;
+      padding:24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
     }
-    /* Start screen */
-    #startCard input{
-      background:#0f1430; color:var(--ink);
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:12px; padding:12px 14px; outline:none;
+    h1{margin:0 0 8px;font-size:clamp(20px, 2.4vw + 12px, 32px)}
+    p.sub{margin-top:0;color:var(--muted)}
+    .row{display:flex; gap:12px; flex-wrap:wrap}
+    label{font-size:14px; color:var(--muted)}
+    input[type="text"], input[type="number"]{
       width:100%;
+      appearance: textfield;
+      background:#0b1220;
+      color:var(--text);
+      border:1px solid rgba(255,255,255,0.14);
+      padding:12px 14px;
+      border-radius:12px;
+      outline: none;
     }
-    label{font-size:13px; color:var(--muted); display:block; margin:10px 0 6px}
-    .error{color:var(--lose); font-size:13px; min-height:1.2em}
+    .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
     .btn{
-      display:inline-flex; align-items:center; justify-content:center;
-      gap:10px; padding:12px 16px;
-      background:linear-gradient(180deg, #7c8cff, #5a6bff);
-      color:white; border:none; border-radius:12px;
-      font-weight:700; cursor:pointer;
-      transition:.2s transform ease, .2s filter ease, .2s opacity ease;
-      box-shadow:0 10px 30px rgba(122,140,255,.35);
+      border:0;
+      background:linear-gradient(90deg, #10b981, #22c55e);
+      color:#07120f;
+      font-weight:700;
+      padding:12px 16px;
+      border-radius:12px;
+      cursor:pointer;
+      transition: transform .06s ease, box-shadow .2s ease, opacity .2s ease;
+      box-shadow: 0 10px 20px rgba(34,197,94,.25);
     }
-    .btn:disabled{opacity:.55; cursor:not-allowed; filter:grayscale(.3)}
+    .btn.secondary{
+      background:linear-gradient(90deg, #3b82f6, #60a5fa);
+      color:#061224;
+      box-shadow: 0 10px 20px rgba(59,130,246,.25);
+    }
     .btn.ghost{
-      background:#0f1430; color:var(--ink); border:1px solid rgba(255,255,255,.14);
-      box-shadow:none; font-weight:600;
+      background:transparent;
+      color:var(--muted);
+      border:1px dashed rgba(255,255,255,.2);
+      box-shadow:none;
     }
-
-    /* Game grid */
-    .grid{
-      display:grid; gap:16px;
-      grid-template-columns: 1fr;
+    .btn:active{ transform: translateY(1px) }
+    .section{margin-top:18px; padding-top:14px; border-top:1px dashed rgba(255,255,255,.12)}
+    .status{
+      margin-top:8px;
+      padding:12px;
+      border-radius:12px;
+      background:#0b1220;
+      border:1px solid rgba(255,255,255,0.06);
+      min-height:56px;
+      display:flex; align-items:center;
     }
-    @media (min-width:820px){
-      .grid{grid-template-columns: 1.2fr .8fr;}
-    }
-
-    .score{
-      display:flex; align-items:center; justify-content:space-between;
-      padding:14px 16px; border-radius:12px; background:#0f1430; border:1px solid rgba(255,255,255,.08);
-      font-weight:700; letter-spacing:.2px
-    }
-    .score .small{font-weight:500; color:var(--muted); font-size:13px}
-
-    .choices{
-      display:flex; gap:14px; flex-wrap:wrap; margin-top:12px
-    }
-    .choice{
-      font-size:28px; line-height:1; padding:14px 18px;
-      background:#0f1430; border:1px solid rgba(255,255,255,.14);
-      border-radius:14px; cursor:pointer; transition:transform .08s ease, box-shadow .2s ease;
-      box-shadow:0 6px 18px rgba(0,0,0,.25);
-    }
-    .choice:disabled{opacity:.55; cursor:not-allowed}
-    .choice:active{transform:translateY(1px) scale(.99)}
-    .versus{
-      display:flex; gap:14px; align-items:center; justify-content:space-between;
-      margin-top:14px; padding:14px; background:#0f1430; border:1px solid rgba(255,255,255,.1); border-radius:14px
-    }
-    .pick{
-      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-width:120px
-    }
-    .emoji{font-size:42px}
-    .who{font-size:12px; color:var(--muted)}
-    .result{
-      margin-top:12px; padding:12px 14px; border-radius:12px;
-      background:#101431; border:1px solid rgba(255,255,255,.08);
-      display:flex; align-items:center; justify-content:space-between; gap:10px
-    }
-    .result strong{font-size:15px}
-    .tag{font-size:12px; padding:6px 10px; border-radius:999px; font-weight:700}
-    .tag.win{background:rgba(41,207,127,.15); color:var(--win); border:1px solid rgba(41,207,127,.3)}
-    .tag.lose{background:rgba(255,84,104,.15); color:var(--lose); border:1px solid rgba(255,84,104,.3)}
-    .tag.tie{background:rgba(154,163,255,.15); color:var(--tie); border:1px solid rgba(154,163,255,.35)}
-    .fade{animation:fade .6s ease}
-    @keyframes fade{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none}}
-
-    .final{
-      margin-top:14px; padding:14px; border-radius:12px;
-      background:linear-gradient(180deg, rgba(122,140,255,.22), rgba(122,140,255,.06));
-      border:1px solid rgba(122,140,255,.35);
-      display:none;
-    }
-    .final.show{display:block}
-    .actions{display:flex; gap:10px; flex-wrap:wrap}
-
-    footer{margin-top:14px; color:var(--muted); font-size:12px; text-align:center}
+    .status.ok{ border-color: rgba(34,197,94,.35) }
+    .status.low{ border-color: rgba(59,130,246,.35) }
+    .status.high{ border-color: rgba(239,68,68,.35) }
+    .muted{color:var(--muted)}
+    .counter{font-weight:700}
+    .hint{font-size:14px;color:var(--muted)}
+    .hidden{display:none !important}
+    footer{margin-top:14px;color:var(--muted);font-size:12px;text-align:center}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Rock · Paper · Scissors</h1>
-    <p class="sub">Play to the winning score you choose. Good luck!</p>
+  <main class="card">
+    <h1>🎯 Guess the Number</h1>
+    <p class="sub">A simple game where you try to guess a secret number. Built by guiding an AI!</p>
 
     <!-- START SCREEN -->
-    <div id="startCard" class="card">
-      <div class="row">
-        <div style="flex:1 1 260px">
-          <label for="playerName">Player name</label>
-          <input id="playerName" type="text" placeholder="e.g., Yvette" autocomplete="off"/>
+    <section id="setup">
+      <div class="grid">
+        <div>
+          <label for="playerName">Your name</label>
+          <input id="playerName" type="text" placeholder="e.g., Carmen" autocomplete="off"/>
         </div>
-        <div style="width:180px; flex:1 1 160px">
-          <label for="winScore">Winning score</label>
-          <input id="winScore" type="number" inputmode="numeric" min="1" step="1" placeholder="e.g., 5"/>
+        <div>
+          <label for="maxNumber">Max number (min 10)</label>
+          <input id="maxNumber" type="number" min="10" step="1" placeholder="100"/>
         </div>
       </div>
-      <div class="row" style="margin-top:14px; align-items:center; justify-content:space-between">
-        <div class="error" id="startError"></div>
-        <button id="startBtn" class="btn" aria-label="Start Game">Start Game</button>
+      <div class="section row">
+        <button id="startBtn" class="btn">Start Game</button>
+        <button id="fillDemo" class="btn ghost" title="Quick fill demo data">Use Demo Values</button>
       </div>
-    </div>
+      <p class="hint">We'll pick a secret number between 1 and your chosen max number.</p>
+    </section>
 
     <!-- GAME SCREEN -->
-    <div id="gameArea" style="display:none">
-      <div class="grid">
-        <!-- Left: play area -->
-        <div>
-          <div class="score" id="scorebar">
-            <div>
-              <div id="scoreLabel"><span id="playerLabel">Player</span> vs Computer</div>
-              <div class="small">First to <span id="targetScore">5</span> wins</div>
-            </div>
-            <div><span id="pScore">0</span> : <span id="cScore">0</span></div>
-          </div>
+    <section id="game" class="hidden" aria-live="polite">
+      <p><span class="muted">Player:</span> <strong id="playerLabel"></strong></p>
+      <p class="hint">I'm thinking of a number between 1 and <span id="rangeLabel">100</span>. Take a guess!</p>
 
-          <div class="choices">
-            <button class="choice" id="btn-rock" data-choice="Rock" aria-label="Rock">✊</button>
-            <button class="choice" id="btn-paper" data-choice="Paper" aria-label="Paper">✋</button>
-            <button class="choice" id="btn-scissors" data-choice="Scissors" aria-label="Scissors">✌️</button>
-          </div>
-
-          <div class="versus">
-            <div class="pick">
-              <div class="who" id="whoYou">You picked</div>
-              <div class="emoji" id="youEmoji">–</div>
-              <div class="small" id="youText">—</div>
-            </div>
-            <div class="pick">
-              <div class="who">Computer picked</div>
-              <div class="emoji" id="cpuEmoji">–</div>
-              <div class="small" id="cpuText">—</div>
-            </div>
-          </div>
-
-          <div class="result" id="roundBox">
-            <strong id="roundMsg">Make your move.</strong>
-            <span id="roundTag" class="tag tie">READY</span>
-          </div>
-
-          <div class="final" id="finalBox">
-            <div id="finalMsg" style="font-weight:800; margin-bottom:10px"></div>
-            <div class="actions">
-              <button id="playAgain" class="btn">Play Again</button>
-              <button id="newMatch" class="btn ghost" title="Change name or winning score">New Settings</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right: tips -->
-        <aside class="card" style="height:100%">
-          <h3 style="margin:0 0 8px; font-size:16px">Rules</h3>
-          <ul style="margin:0; padding-left:18px; line-height:1.6; color:var(--muted); font-size:14px">
-            <li>Rock beats Scissors</li>
-            <li>Paper beats Rock</li>
-            <li>Scissors beats Paper</li>
-            <li>Ties don’t change the score</li>
-          </ul>
-          <hr style="border-color:rgba(255,255,255,.08); margin:14px 0">
-          <p class="sub" style="margin:0">Emoji buttons are accessible; hover for labels or use keyboard focus.</p>
-        </aside>
+      <div class="row">
+        <input id="guessInput" type="number" inputmode="numeric" placeholder="Enter your guess…" />
+        <button id="guessBtn" class="btn secondary">Submit Guess</button>
       </div>
-      <footer>Made with vanilla HTML, CSS, and JavaScript.</footer>
-    </div>
-  </div>
+
+      <div class="section">
+        <div id="status" class="status"><span class="muted">Waiting for your first guess…</span></div>
+        <p class="hint">
+          Attempts: <span id="attempts" class="counter">0</span>
+          <span id="encouragement" class="muted"></span>
+        </p>
+      </div>
+
+      <div class="section row">
+        <button id="playAgainBtn" class="btn hidden">Play Again</button>
+        <button id="changeSettingsBtn" class="btn ghost hidden">Change Name / Max</button>
+      </div>
+    </section>
+
+    <footer>Tip: Press Enter to submit your guess.</footer>
+  </main>
 
   <script>
     // Elements
-    const startCard  = document.getElementById('startCard');
-    const startBtn   = document.getElementById('startBtn');
-    const startError = document.getElementById('startError');
-    const nameInput  = document.getElementById('playerName');
-    const winInput   = document.getElementById('winScore');
+    const setup = document.getElementById('setup');
+    const game = document.getElementById('game');
+    const playerInput = document.getElementById('playerName');
+    const maxInput = document.getElementById('maxNumber');
+    const startBtn = document.getElementById('startBtn');
+    const fillDemo = document.getElementById('fillDemo');
 
-    const gameArea   = document.getElementById('gameArea');
-    const playerLabel= document.getElementById('playerLabel');
-    const targetScore= document.getElementById('targetScore');
-    const pScoreEl   = document.getElementById('pScore');
-    const cScoreEl   = document.getElementById('cScore');
+    const playerLabel = document.getElementById('playerLabel');
+    const rangeLabel = document.getElementById('rangeLabel');
+    const guessInput = document.getElementById('guessInput');
+    const guessBtn = document.getElementById('guessBtn');
+    const statusBox = document.getElementById('status');
+    const attemptsEl = document.getElementById('attempts');
+    const encouragementEl = document.getElementById('encouragement');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+    const changeSettingsBtn = document.getElementById('changeSettingsBtn');
 
-    const buttons    = [...document.querySelectorAll('.choice')];
-    const roundMsg   = document.getElementById('roundMsg');
-    const roundTag   = document.getElementById('roundTag');
+    // Game state
+    let secret = 0;
+    let maxNum = 100;
+    let attempts = 0;
+    let finished = false;
 
-    const youEmoji   = document.getElementById('youEmoji');
-    const youText    = document.getElementById('youText');
-    const cpuEmoji   = document.getElementById('cpuEmoji');
-    const cpuText    = document.getElementById('cpuText');
-    const whoYou     = document.getElementById('whoYou');
-
-    const finalBox   = document.getElementById('finalBox');
-    const finalMsg   = document.getElementById('finalMsg');
-    const playAgain  = document.getElementById('playAgain');
-    const newMatch   = document.getElementById('newMatch');
-
-    // State
-    let pScore = 0, cScore = 0, target = 5, playerName = 'Player', gameOver = false;
-    const EMOJI = { Rock:'✊', Paper:'✋', Scissors:'✌️' };
-    const CHOICES = Object.keys(EMOJI);
-    const BEATS = { Rock:'Scissors', Paper:'Rock', Scissors:'Paper' };
-
-    function validateStart(){
-      const name = (nameInput.value || '').trim() || 'Player';
-      const raw  = winInput.value;
-      const n = Number(raw);
-      if (!raw || !Number.isInteger(n) || n < 1){
-        startError.textContent = "Winning score must be a positive whole number.";
-        return null;
-      }
-      startError.textContent = "";
-      return { name, target:n };
+    function setStatus(text, type){
+      statusBox.className = 'status'; // reset
+      if(type){ statusBox.classList.add(type); }
+      statusBox.textContent = text;
     }
 
-    function setButtonsEnabled(on){
-      buttons.forEach(b => b.disabled = !on);
-    }
-
-    function resetRoundUI(){
-      youEmoji.textContent = '–'; youText.textContent = '—';
-      cpuEmoji.textContent = '–'; cpuText.textContent = '—';
-      roundMsg.textContent = 'Make your move.';
-      roundTag.className = 'tag tie'; roundTag.textContent = 'READY';
+    function randomInt(min, max){
+      return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     function startGame(){
-      const v = validateStart(); if(!v) return;
-      playerName = v.name; target = v.target;
-      playerLabel.textContent = playerName;
-      targetScore.textContent = target;
-      whoYou.textContent = `${playerName} picked`;
+      const name = (playerInput.value || '').trim();
+      const rawMax = maxInput.value.trim();
+      const chosenMax = Number(rawMax);
 
-      pScore = 0; cScore = 0; gameOver = false;
-      pScoreEl.textContent = '0'; cScoreEl.textContent = '0';
-      resetRoundUI();
-      finalBox.classList.remove('show');
+      if(!name){
+        alert('Please enter your name.'); return;
+      }
+      if(!rawMax || !Number.isInteger(chosenMax)){
+        alert('Please enter a whole number for "Max number".'); return;
+      }
+      if(chosenMax < 10){
+        alert('Max number must be at least 10.'); return;
+      }
 
-      startCard.style.display = 'none';
-      gameArea.style.display = 'block';
-      setButtonsEnabled(true);
+      playerLabel.textContent = name;
+      maxNum = chosenMax;
+      rangeLabel.textContent = String(maxNum);
+      secret = randomInt(1, maxNum);
+      attempts = 0;
+      finished = false;
+
+      attemptsEl.textContent = attempts;
+      encouragementEl.textContent = '';
+      setStatus('Game started! Make your first guess.', null);
+
+      setup.classList.add('hidden');
+      game.classList.remove('hidden');
+      guessInput.value = '';
+      guessInput.min = 1;
+      guessInput.max = maxNum;
+      guessInput.focus();
+      playAgainBtn.classList.add('hidden');
+      changeSettingsBtn.classList.add('hidden');
+      guessInput.disabled = false;
+      guessBtn.disabled = false;
     }
 
-    function playAgainSameSettings(){
-      pScore = 0; cScore = 0; gameOver = false;
-      pScoreEl.textContent = '0'; cScoreEl.textContent = '0';
-      resetRoundUI();
-      finalBox.classList.remove('show');
-      setButtonsEnabled(true);
-    }
+    function handleGuess(){
+      if(finished) return;
 
-    function backToStart(){
-      // Allow changing settings
-      gameArea.style.display = 'none';
-      startCard.style.display = 'block';
-      finalBox.classList.remove('show');
-      setButtonsEnabled(false);
-    }
+      const val = guessInput.value.trim();
+      if(val === ''){ alert('Enter a number to guess.'); return; }
+      const guess = Number(val);
 
-    function computerChoice(){
-      return CHOICES[Math.floor(Math.random() * CHOICES.length)];
-    }
+      if(!Number.isInteger(guess)){
+        alert('Please enter a whole number (no decimals).');
+        guessInput.value = '';
+        guessInput.focus();
+        return;
+      }
+      if(guess < 1 || guess > maxNum){
+        alert('Your guess must be between 1 and ' + maxNum + '.');
+        guessInput.select();
+        return;
+      }
 
-    function decide(p, c){
-      if (p === c) return 'tie';
-      return BEATS[p] === c ? 'win' : 'lose';
-    }
+      attempts += 1;
+      attemptsEl.textContent = attempts;
 
-    function updateUI(pickP, pickC, outcome){
-      // choices
-      youEmoji.textContent = EMOJI[pickP];
-      youText.textContent = pickP;
-      cpuEmoji.textContent = EMOJI[pickC];
-      cpuText.textContent = pickC;
+      if(attempts === 7){
+        encouragementEl.textContent = ' • Keep going, you\'re getting closer!';
+      } else if(attempts === 10){
+        encouragementEl.textContent = ' • Pro tip: Try narrowing the range by halves.';
+      }
 
-      // round message + tag
-      roundMsg.classList.add('fade'); roundTag.classList.add('fade');
-      setTimeout(()=>{ roundMsg.classList.remove('fade'); roundTag.classList.remove('fade'); }, 600);
-
-      if (outcome === 'win'){
-        roundMsg.textContent = `${playerName} wins the round!`;
-        roundTag.textContent = 'WIN'; roundTag.className = 'tag win';
-      } else if (outcome === 'lose'){
-        roundMsg.textContent = `Computer wins the round.`;
-        roundTag.textContent = 'LOSE'; roundTag.className = 'tag lose';
+      if(guess === secret){
+        finished = true;
+        setStatus(`🎉 Correct! The number was ${secret}. Great job, ${playerLabel.textContent}! You won in ${attempts} attempt${attempts===1?'':'s'}.`, 'ok');
+        guessInput.disabled = true;
+        guessBtn.disabled = true;
+        playAgainBtn.classList.remove('hidden');
+        changeSettingsBtn.classList.remove('hidden');
+      } else if(guess < secret){
+        setStatus('Too low! Try again.', 'low');
       } else {
-        roundMsg.textContent = `It's a tie.`; 
-        roundTag.textContent = 'TIE'; roundTag.className = 'tag tie';
+        setStatus('Too high! Try again.', 'high');
       }
 
-      // scores
-      pScoreEl.textContent = pScore.toString();
-      cScoreEl.textContent = cScore.toString();
+      guessInput.value = '';
+      guessInput.focus();
     }
 
-    function maybeEnd(){
-      if (pScore >= target || cScore >= target){
-        gameOver = true;
-        setButtonsEnabled(false);
-        finalMsg.textContent = pScore > cScore
-          ? `${playerName} wins the match!`
-          : `The Computer wins the match!`;
-        finalBox.classList.add('show');
-      }
+    function resetToSetup(){
+      setup.classList.remove('hidden');
+      game.classList.add('hidden');
+      playerInput.focus();
     }
 
-    function onPick(choice){
-      if (gameOver) return;
-      const cpu = computerChoice();
-      const result = decide(choice, cpu);
-      if (result === 'win') pScore += 1;
-      else if (result === 'lose') cScore += 1;
-      // (No score change on tie)
-      updateUI(choice, cpu, result);
-      maybeEnd();
+    function playAgain(){
+      secret = randomInt(1, maxNum);
+      attempts = 0;
+      finished = false;
+
+      attemptsEl.textContent = attempts;
+      encouragementEl.textContent = '';
+      setStatus('New round! Make your first guess.', null);
+
+      guessInput.disabled = false;
+      guessBtn.disabled = false;
+      guessInput.value = '';
+      guessInput.focus();
+      playAgainBtn.classList.add('hidden');
+      changeSettingsBtn.classList.add('hidden');
     }
 
     // Events
     startBtn.addEventListener('click', startGame);
-    buttons.forEach(b => b.addEventListener('click', () => onPick(b.dataset.choice)));
-    playAgain.addEventListener('click', playAgainSameSettings);
-    newMatch.addEventListener('click', backToStart);
-
-    // Quality-of-life: Enter key starts game
-    [nameInput, winInput].forEach(el => el.addEventListener('keydown', e=>{
-      if(e.key==='Enter') startGame();
-    }));
+    fillDemo.addEventListener('click', () => {
+      playerInput.value = 'Player One';
+      maxInput.value = '100';
+      playerInput.focus();
+    });
+    guessBtn.addEventListener('click', handleGuess);
+    guessInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ handleGuess(); }});
+    playAgainBtn.addEventListener('click', playAgain);
+    changeSettingsBtn.addEventListener('click', resetToSetup);
   </script>
 </body>
 </html>
